@@ -15,8 +15,6 @@ import torch
 
 os.makedirs("images", exist_ok=True)
 
-
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
@@ -83,7 +81,8 @@ class Discriminator(nn.Module):
 
         # Output layers
         self.adv_layer = nn.Sequential(nn.Linear(128 * ds_size ** 2, 1), nn.Sigmoid())
-        self.aux_layer = nn.Sequential(nn.Linear(128 * ds_size ** 2,10), nn.Softmax())
+        self.aux_layer = nn.Sequential(nn.Linear(128 * ds_size ** 2, 10),
+                                       nn.Softmax(dim=1))  ###nn.Softmax(dim=1)需要注意一下，这是为了让代码不出警告这么改的
 
     def forward(self, img):
         out = self.conv_blocks(img)
@@ -122,8 +121,8 @@ dataloader = torch.utils.data.DataLoader(
 )
 
 # Optimizers
-optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0002, betas=(0.5,0.999))
-optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0002, betas=(0.5,0.999))
+optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0002, betas=(0.5, 0.999))
+optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999))
 
 
 def sample_image(n_row, batches_done):
@@ -143,28 +142,20 @@ def sample_image(n_row, batches_done):
 
 for epoch in range(50):
     for i, (imgs, labels) in enumerate(dataloader):
-
         batch_size = imgs.shape[0]
-
         # Adversarial ground truths
         valid = torch.ones(batch_size, 1, requires_grad=False).to(device)
         fake = torch.zeros(batch_size, 1, requires_grad=False).to(device)
-
         # Configure input
         real_imgs = torch.FloatTensor(imgs).to(device)
-        labels =torch.LongTensor(labels).to(device)
-
-
+        labels = torch.LongTensor(labels).to(device)
         # -----------------
         #  Train Generator
         # -----------------
-
         optimizer_G.zero_grad()
-
         # Sample noise and labels as generator input
         z = torch.FloatTensor(np.random.normal(0, 1, (batch_size, 100))).to(device)
-        gen_labels =torch.LongTensor(np.random.randint(0, 10, batch_size)).to(device)
-
+        gen_labels = torch.LongTensor(np.random.randint(0, 10, batch_size)).to(device)
 
         # Generate a batch of images
         gen_imgs = generator(z, gen_labels)
@@ -199,7 +190,7 @@ for epoch in range(50):
         d_acc = np.mean(np.argmax(pred, axis=1) == gt)
         d_loss.backward()
         optimizer_D.step()
-        torch.save(generator,'generator.pt')
+        torch.save(generator, 'generator.pt')
 
         print(
             "[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %d%%] [G loss: %f]"
