@@ -791,3 +791,6 @@ data/download_pix2pix_dataset.sh
 
 from: https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/
 to: https://efrosgans.eecs.berkeley.edu/pix2pix/datasets/
+
+
+原始项目https://github.com/eriklindernoren/PyTorch-GAN
